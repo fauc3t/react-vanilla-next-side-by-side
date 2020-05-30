@@ -1,0 +1,36 @@
+server {
+    # The root build location for the client-side application
+    root /var/www/react-vanilla-next-side-by-side/client-side/build;
+
+    # Next.js static content location
+    location /_next/static {
+        proxy_pass http://127.0.0.1:3000;
+    }
+
+    # 
+    location / {
+        # proxy this request to the server-side application running on port 3000
+		proxy_pass http://127.0.0.1:3000;
+
+        # Intercept proxied response errors
+        # http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_intercept_errors
+        proxy_intercept_errors on;
+
+        # Enables multiple redirects with error_page directive
+        # http://nginx.org/en/docs/http/ngx_http_core_module.html#recursive_error_pages
+        recursive_error_pages on;
+
+        # Defines a location when for the error(s) specified (404 in our case)
+        # http://nginx.org/en/docs/http/ngx_http_core_module.html#error_page
+        error_page 404 = @fallback;
+	}
+
+    # Fallback to the client-side application
+    location @fallback {
+        # Passes the request with $uri to the client-side application
+        try_files $uri /index.html;        
+    }
+
+    listen 80 default_server;
+    listen [::]:80 default_server;
+}
